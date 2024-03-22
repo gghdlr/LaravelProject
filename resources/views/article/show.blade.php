@@ -39,11 +39,11 @@
     <h5 class="card-title">{{$comment->title}}</h5>
     <h6 class="card-subtitle mb-2 text-muted">{{$comment->text}}</h6>
     <div class="btn-toolbar">
-    <a href="/article/{{$article->id}}/edit" class="btn btn-primary mr-3">Edit article</a>
-    <form action="/article/{{$article->id}}" method="post">
+    <a href="/comment/{{$comment->id}}/edit" class="btn btn-primary mr-3">Edit comment</a>
+    <form action="/comment/{{$comment->id}}" method="post">
         @method("DELETE")
         @csrf
-        <button type="submit" class="btn btn-danger">Delete article</button>
+        <button type="submit" class="btn btn-danger">Delete comment</button>
     </form>
     </div>
   </div>
