@@ -25,11 +25,14 @@ Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
 
 //Article
 
-Route::resource('article', ArticleController::class);
+Route::resource('article', ArticleController::class)->middleware('auth:sanctum');
 
 //Auth
 Route::get('signin', [AuthController::class, 'signin']);
 Route::post('registr', [AuthController::class, 'registr']);
+Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('signup', [AuthController::class, 'signup']);
+Route::get('logout', [AuthController::class, 'logout']);
 
 //MainControllers
 Route::get('/articles', [MainController::class, 'index']);

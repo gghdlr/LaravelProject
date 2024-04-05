@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MailNewComment;
+use App\Models\Article;
 
 class CommentController extends Controller
 {
@@ -32,13 +36,15 @@ class CommentController extends Controller
             'title'=>'required',
             'text'=>'required'
         ]);
-
+        // $article = Article::where('id', request('article_id'))->get();
+        $article = Article::findOrFail(request('article_id'));
         $comment = new Comment;
         $comment->title = request('title');
         $comment->text = request('text');
-        $comment->user_id = 1;
+        $comment->user_id = Auth::id();
         $comment->article_id = request('article_id');
-        $comment->save();
+        $res = $comment->save();
+        if ($res) Mail::to('danrom2003@mail.ru')->send(new MailNewComment($article));
         return redirect()->route('article.show', ['article'=>request('article_id')]);        
     }
 
@@ -72,6 +78,8 @@ class CommentController extends Controller
         $comment->text = request('text');
         $comment->save();
         //return redirect()->route('article.show', ['article'=>request('article_id')]);  
+        $article = $comment->article_id;
+        return redirect()->route('article.show', ['article'=> $article]);
         return redirect()->route('article.index');      
     }
 
@@ -81,6 +89,7 @@ class CommentController extends Controller
     public function destroy(Comment $comment)
     {
         $comment->delete();
-        return redirect()->route('article.index');
+        $article = $comment->article_id;
+        return redirect()->route('article.show', ['article'=> $article]);
     }
 }

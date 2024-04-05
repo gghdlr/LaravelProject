@@ -4,6 +4,10 @@ namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Comment;
+use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +17,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        Article::class => ArticleControllerPolicy::class,
     ];
 
     /**
@@ -21,8 +25,14 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->registerPolicies();
+        Gate::before(function(User $user){
+            if ($user->role == 'moderator') return true;
+        });
 
-        //
+        Gate::define('comment', function(User $user, Comment $comment){
+            return ($user->id == $comment-> user_id) ?
+            Response::allow() :
+            Response::deny('not author!');
+        });
     }
 }

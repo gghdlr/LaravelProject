@@ -47,8 +47,13 @@
       </li>
     </ul>
     <div class="form-inline my-2 my-lg-0">
+      @guest
       <a href="/signin" class="btn btn-outline-success mr-2 my-2 my-sm-0">Sign in</a>
-      <a href="/signup" class="btn btn-outline-success my-2 my-sm-0" >Sign up</a>
+      <a href="/login" class="btn btn-outline-success mr-2 my-2 my-sm-0" >Sign up</a>
+      @endguest
+      @auth
+      <a href="/logout" class="btn btn-outline-success my-2 my-sm-0" >Log out</a>
+      @endauth
 </div>
   </div>
 </nav>
