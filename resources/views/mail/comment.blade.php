@@ -1,4 +1,4 @@
 <p>Add new comment for article 
     <b>
-        {{$article}}
+        {{$article->name}}
     </b></p>

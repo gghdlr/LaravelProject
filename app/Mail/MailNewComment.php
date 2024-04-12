@@ -41,9 +41,10 @@ class MailNewComment extends Mailable
     {
         return new Content(
             view: 'mail.comment',
-            with: ['article' => $this->article->title],
+            with: ['article' => $this->article],
         );
     }
+
 
     /**
      * Get the attachments for the message.

@@ -15,7 +15,9 @@
   </div>
 </div>
 <h4>Comments</h4>
-
+@if(session('res'))
+  <div class="aleart">Ваш комментарий добавлен и отправлен на модерацию</div>
+@endif
 <form action="/comment"  method="post">
     @csrf
     <input type="hidden" name="article_id" value="{{$article->id}}">
