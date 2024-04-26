@@ -21,10 +21,23 @@ class CommentController extends Controller
         $comments = DB::table('comments')
             ->join('users', 'users.id', '=', 'comments.user_id')
             ->join('articles', 'articles.id', '=', 'comments.article_id')
-            ->select('comments.title', 'comments.text', 'users.name', 'articles.name as article_name')
+            ->select('comments.*', 'users.name',
+             'articles.name as article_name', 'articles.id as article_id')
             ->get();
-        Log::alert($comments);
-        // /return view('comment.index', ['comments', $comments]);
+        //Log::alert($comments);
+       return view('comment.index', ['comments'=> $comments]);
+    }
+
+    public function accept(Comment $comment) {
+        $comment->accept = 'true';
+        $comment->save();
+        return redirect()->route('comment.index');
+    }
+
+    public function reject(Comment $comment) {
+        $comment->accept = 'false';
+        $comment->save();
+        return redirect()->route('comment.index');
     }
 
     /**

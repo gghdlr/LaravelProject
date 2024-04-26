@@ -14,7 +14,6 @@
       <th scope="row">{{$article->date}}</th>
       <td><a href="/article/{{$article->id}}">{{$article->name}}</a></td>
       <td>{{$article->desc}}</td>
-      <!-- <td><a href="/full-img/{{$article->full_image}}"><img src="{{URL::asset($article->preview_image)}}" width = 450 height = 300 alt=""></a></td> -->
     </tr>
     @endforeach
   </tbody>

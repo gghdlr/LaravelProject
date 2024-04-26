@@ -18,11 +18,17 @@ use App\Http\Controllers\CommentController;
 */
 
 //Comment
-Route::post('comment', [CommentController::class, 'store']);
-Route::get('comment/{comment}/edit', [CommentController::class, 'edit']);
-Route::put('comment/{comment}', [CommentController::class, 'update']);
-Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
-Route::get('comment', [Commentcontroller::class, 'index']);
+
+Route::controller(CommentController::Class)->group(function(){
+    Route::post('comment', [CommentController::class, 'store']);
+    Route::get('comment/{comment}/edit', [CommentController::class, 'edit']);
+    Route::put('comment/{comment}', [CommentController::class, 'update']);
+    Route::delete('comment/{comment}', [CommentController::class, 'destroy']);
+    Route::get('comment', [Commentcontroller::class, 'index']);
+    Route::get('comment/{comment}/reject', 'reject');
+    Route::get('comment/{comment}/accept', 'accept');
+    Route::get('comment', 'index')->name('comment.index');
+});
 
 //Article
 
