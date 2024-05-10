@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use App\Mail\MailNewComment;
 use App\Models\Article;
+use App\Notifications\CommentNotify;
 
 class CommentController extends Controller
 {
@@ -29,8 +32,10 @@ class CommentController extends Controller
     }
 
     public function accept(Comment $comment) {
+        $users = User::where("id", '!=', $comment->user_id)->get();
         $comment->accept = 'true';
-        $comment->save();
+        $res = $comment->save();
+        if ($res) Notification::send($users, new CommentNotify($comment->title, $comment->article_id));
         return redirect()->route('comment.index');
     }
 
@@ -57,7 +62,6 @@ class CommentController extends Controller
             'title'=>'required',
             'text'=>'required'
         ]);
-        // $article = Article::where('id', request('article_id'))->get();
         $article = Article::findOrFail(request('article_id'));
         $comment = new Comment;
         $comment->title = request('title');
@@ -65,7 +69,7 @@ class CommentController extends Controller
         $comment->user_id = Auth::id();
         $comment->article_id = request('article_id');
         $res = $comment->save();
-        if ($res) Mail::to('danrom2003@mail.ru')->send(new MailNewComment($article));
+        if ($res) Mail::to('alex-yurlov@mail.ru')->send(new MailNewComment($article));
         return redirect()->route('article.show', ['article'=>request('article_id')])->with(['res'=>$res]);        
     }
 
@@ -98,7 +102,7 @@ class CommentController extends Controller
         $comment->title = request('title');
         $comment->text = request('text');
         $comment->save();
-        //return redirect()->route('article.show', ['article'=>request('article_id')]);  
+ 
         $article = $comment->article_id;
         return redirect()->route('article.show', ['article'=> $article]);
         return redirect()->route('article.index');      

@@ -30,7 +30,7 @@ class MailNewComment extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address('danrom2003@mail.ru')
+            from: new Address('gghdlr@mail.ru')
         );
     }
 
