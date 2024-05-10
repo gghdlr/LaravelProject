@@ -1,4 +1,5 @@
 <template>
+    <strong><a v-bind:href="'article/'+ this.id">{{this.msg}}</a></strong>
     <div v-show="this.msg != null" class="alert alert-primary" role="alert">
         var id = msg->id;
         Добавлена новая статья <strong><a href="article/this.id">{{this.msg}}</a></strong>
