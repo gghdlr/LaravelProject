@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Mail\MailNewComment;
@@ -20,14 +21,16 @@ class CommentController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        $comments = DB::table('comments')
+    {   
+
+        $comments = Cache::rememberForever('comments', function() {
+            return DB::table('comments')
             ->join('users', 'users.id', '=', 'comments.user_id')
             ->join('articles', 'articles.id', '=', 'comments.article_id')
             ->select('comments.*', 'users.name',
              'articles.name as article_name', 'articles.id as article_id')
             ->get();
-        //Log::alert($comments);
+        });
        return view('comment.index', ['comments'=> $comments]);
     }
 
@@ -35,13 +38,24 @@ class CommentController extends Controller
         $users = User::where("id", '!=', $comment->user_id)->get();
         $comment->accept = 'true';
         $res = $comment->save();
-        if ($res) Notification::send($users, new CommentNotify($comment->title, $comment->article_id));
+        if ($res) {
+            Notification::send($users, new CommentNotify($comment->title, $comment->article_id));
+            Cache::forget('comments');
+            $caches = DB::table('cache')
+            ->select('key')
+            ->whereRaw('`key` GLOB :param', [':param' => 'comments*[0-9]'])->get();
+            foreach($caches as $cache) {
+                Cache::forget($cache->key);
+            }
+        } 
         return redirect()->route('comment.index');
     }
 
     public function reject(Comment $comment) {
         $comment->accept = 'false';
-        $comment->save();
+        if($comment->save()){
+            Cache::flush();
+        };
         return redirect()->route('comment.index');
     }
 
@@ -69,7 +83,10 @@ class CommentController extends Controller
         $comment->user_id = Auth::id();
         $comment->article_id = request('article_id');
         $res = $comment->save();
-        if ($res) Mail::to('alex-yurlov@mail.ru')->send(new MailNewComment($article));
+        if ($res){
+            Mail::to('alex-yurlov@mail.ru')->send(new MailNewComment($article));
+            Cache::forget('comments');
+        } 
         return redirect()->route('article.show', ['article'=>request('article_id')])->with(['res'=>$res]);        
     }
 
@@ -115,6 +132,7 @@ class CommentController extends Controller
     {
         $comment->delete();
         $article = $comment->article_id;
+        Cache::flush();
         return redirect()->route('article.show', ['article'=> $article]);
     }
 }

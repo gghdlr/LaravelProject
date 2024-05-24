@@ -68,7 +68,10 @@ class ArticleController extends Controller
         if(isset($_GET['id_notify'])) {
             auth()->user()->notifications->where('id', $_GET['id_notify'])->first()->markAsRead();
         }
-        $comments = Comment::where(['article_id', $article->id, 'accept'=>true])->get();
+        $comments = Cache::rememberForever('comments_'.$article->id, function() use($article){
+            return Comment::where(['article_id' => $article->id, 'accept' => 'true'])->get();
+        }); 
+    
         return view('article.show', ['article'=>$article, 'comments'=>$comments]);
     }
 
@@ -86,7 +89,13 @@ class ArticleController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Article $article)
-    {
+    {   
+        $caches = DB::table('cache')
+        ->select('key')
+        ->whereRaw('`key` GLOB :param', [':param' => 'articles*[0-9]'])->get();
+        foreach($caches as $cache) {
+            Cache::forget($cache->key);
+        }
         $request->validate([
             'date'=>'required',
             'name'=>'required|min:6',
@@ -106,7 +115,14 @@ class ArticleController extends Controller
     public function destroy(Article $article)
     {
         Gate::authorize('delete', [self::class, $article]);
-        $article->delete();
+        if($article->delete()) {
+            $caches = DB::table('cache')
+            ->select('key')
+            ->whereRaw('`key` GLOB :param', [':param' => 'articles*[0-9]'])->get();
+            foreach($caches as $cache) {
+            Cache::forget($cache->key);
+            }
+        }
         return redirect()->route('article.index');
     }
 }
