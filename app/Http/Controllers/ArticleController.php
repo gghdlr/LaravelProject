@@ -22,6 +22,7 @@ class ArticleController extends Controller
         $articles = Cache::remember('articles'.$currentPage, 3000, function() {
             return Article::latest()->paginate(10);
         });
+        if (request()->expectsJson()) return response()->json($articles);
         return view('article.index', ['articles'=>$articles]);
     }
 
@@ -56,6 +57,7 @@ class ArticleController extends Controller
         $article->desc = request('desc');
         $article->user_id = 1;
         $res = $article->save();
+        if ($request->expectsJson()) return response()->json($res);
         if ($res) ArticleEvent::dispatch($article);
         return redirect()->route('article.index');
     }
@@ -71,7 +73,7 @@ class ArticleController extends Controller
         $comments = Cache::rememberForever('comments_'.$article->id, function() use($article){
             return Comment::where(['article_id' => $article->id, 'accept' => 'true'])->get();
         }); 
-    
+        if (request()->expectsJson()) return response()->json(['article'=>$article, 'comments'=>$comments]);
         return view('article.show', ['article'=>$article, 'comments'=>$comments]);
     }
 
@@ -105,7 +107,8 @@ class ArticleController extends Controller
         $article->name = request('name');
         $article->desc = request('desc');
         $article->user_id = 1;
-        $article->save();
+        $res = $article->save();
+        if ($request->expectsJson()) return response()->json($res);
         return redirect()->route('article.show', ['article'=>$article->id]);        
     }
 
@@ -115,7 +118,7 @@ class ArticleController extends Controller
     public function destroy(Article $article)
     {
         Gate::authorize('delete', [self::class, $article]);
-        if($article->delete()) {
+        if($res = $article->delete()) {
             $caches = DB::table('cache')
             ->select('key')
             ->whereRaw('`key` GLOB :param', [':param' => 'articles*[0-9]'])->get();
@@ -123,6 +126,7 @@ class ArticleController extends Controller
             Cache::forget($cache->key);
             }
         }
+        if (request()->expectsJson()) return response()->json($res);
         return redirect()->route('article.index');
     }
 }

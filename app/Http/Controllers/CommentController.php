@@ -31,7 +31,8 @@ class CommentController extends Controller
              'articles.name as article_name', 'articles.id as article_id')
             ->get();
         });
-       return view('comment.index', ['comments'=> $comments]);
+        if (request()->expectsJson()) return $comments;
+        return view('comment.index', ['comments'=> $comments]);
     }
 
     public function accept(Comment $comment) {
@@ -48,6 +49,7 @@ class CommentController extends Controller
                 Cache::forget($cache->key);
             }
         } 
+        //
         return redirect()->route('comment.index');
     }
 
@@ -56,6 +58,7 @@ class CommentController extends Controller
         if($comment->save()){
             Cache::flush();
         };
+        //
         return redirect()->route('comment.index');
     }
 
@@ -87,6 +90,7 @@ class CommentController extends Controller
             Mail::to('alex-yurlov@mail.ru')->send(new MailNewComment($article));
             Cache::forget('comments');
         } 
+        //
         return redirect()->route('article.show', ['article'=>request('article_id')])->with(['res'=>$res]);        
     }
 
@@ -103,6 +107,7 @@ class CommentController extends Controller
      */
     public function edit(Comment $comment)
     {
+        //
         return view('comment.edit', ['comment'=>$comment]);
     }
 
@@ -121,6 +126,7 @@ class CommentController extends Controller
         $comment->save();
  
         $article = $comment->article_id;
+        //
         return redirect()->route('article.show', ['article'=> $article]);
         return redirect()->route('article.index');      
     }
@@ -133,6 +139,7 @@ class CommentController extends Controller
         $comment->delete();
         $article = $comment->article_id;
         Cache::flush();
+        //
         return redirect()->route('article.show', ['article'=> $article]);
     }
 }
